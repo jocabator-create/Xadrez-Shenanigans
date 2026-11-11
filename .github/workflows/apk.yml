@@ -22,18 +22,15 @@ jobs:
 
     - name: Instalar Android SDK e NDK via Command Line
       run: |
-        # Instala ferramentas essenciais do Android SDK de forma nativa
         sudo apt-get update
         sudo apt-get install -y cmake ninja-build build-essential wget unzip
 
-        # Baixa e configura o Commandline Tools do Android
         wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdtools.zip
         mkdir -p $HOME/android/sdk/cmdline-tools/latest
         unzip -q cmdtools.zip -d $HOME/android/sdk/cmdline-tools/
         mv $HOME/android/sdk/cmdline-tools/cmdline-tools/* $HOME/android/sdk/cmdline-tools/latest/
         rm cmdtools.zip
 
-        # Exporta variáveis de ambiente do Android
         echo "export ANDROID_HOME=$HOME/android/sdk" >> $GITHUB_ENV
         echo "export PATH=\$PATH:\$ANDROID_HOME/cmdline-tools/latest/bin:\$ANDROID_HOME/platform-tools" >> $GITHUB_ENV
 
@@ -50,16 +47,16 @@ jobs:
 
         mkdir -p build
         cd build
-        cmake -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake \
+        cmake -G "Ninja" \
+              -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake \
               -DANDROID_ABI=armeabi-v7a \
               -DANDROID_PLATFORM=android-21 \
               -DCMAKE_BUILD_TYPE=Release ..
-        make -j4 || echo "Compilação concluída com avisos"
+        ninja
 
-    - name: Procurar e Salvar APK Gerado
+    - name: Procurar e Salvar Binários
       uses: actions/upload-artifact@v4
       with:
-        name: xadrez-academic-apk
+        name: xadrez-academic-binarios
         path: |
-          build/**/*.apk
-          *.apk
+          build/**/*
