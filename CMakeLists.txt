@@ -3,11 +3,12 @@ project(XadrezAcademico)
 
 set(CMAKE_CXX_STANDARD 17)
 
-# Força a Raylib a compilar em modo PLATFORM_ANDROID e desliga tudo o resto
-set(PLATFORM "PLATFORM_ANDROID" CACHE STRING "Target platform" FORCE)
+# Configuração fixa para plataforma Android sem dependências de ambiente de trabalho
+set(PLATFORM "Android" CACHE STRING "" FORCE)
 set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(BUILD_GAMES    OFF CACHE BOOL "" FORCE)
-set(WITH_examples  OFF CACHE BOOL "" FORCE)
+set(SUPPORT_FILEFORMAT_BMP ON CACHE BOOL "" FORCE)
+set(SUPPORT_FILEFORMAT_PNG ON CACHE BOOL "" FORCE)
 
 include(FetchContent)
 FetchContent_Declare(
