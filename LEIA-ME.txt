@@ -1,0 +1,27 @@
+Xadrez Acadêmico: projeto Android (APK)
+
+Este pacote é o projeto completo do app, com a sua logo como ícone. Eu não consegui gerar o
+arquivo .apk aqui porque o ambiente não tem o Android SDK nem internet. O APK sai pronto em
+alguns minutos pelo GitHub (grátis), que já tem tudo instalado:
+
+1) Crie um repositório no github.com (pode ser privado).
+2) Envie o conteúdo desta pasta para ele (Add file > Upload files, arrastando tudo, ou git push).
+   Se a pasta .github não subir, vá em Actions > "set up a workflow yourself" e cole o conteúdo
+   do arquivo apk.yml.
+3) Abra a aba Actions > "Gerar APK" > Run workflow. Ele baixa o Stockfish 18 (WASM) sozinho
+   e compila.
+4) Quando terminar, baixe o artefato "xadrez-apk" (um zip com app-debug.apk), mande para o
+   celular e instale (permita "instalar apps de fontes desconhecidas").
+
+Detalhes
+- O app abre o xadrez.html de dentro do APK, sem internet. Os arquivos do Stockfish ficam em
+  app/src/main/assets. O workflow baixa os três: lite (jogar), completo e multi-thread (analista).
+  Por isso o APK fica grande (mais de 100 MB). Para um APK menor, apague da lista no apk.yml o par
+  stockfish-18.js/.wasm (e, se quiser, o stockfish-18-single).
+- O aprendizado da IA fica guardado no próprio app.
+- Android Studio também serve: abra esta pasta, copie os arquivos stockfish-18-*.js/.wasm da
+  versão v18.0.0 (github.com/nmrugg/Stockfish.js/releases) para app/src/main/assets e use
+  Build > Build APK.
+- Requer Android 8.0 ou mais novo. O APK é assinado com a chave de debug, boa para instalar
+  direto, mas não serve para publicar na Play Store.
+- icone-512.png é a logo em 512 px, fundo azul-acinzentado.

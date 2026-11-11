@@ -1,0 +1,14 @@
+plugins { id 'com.android.application' }
+android {
+    namespace 'br.xadrez.academico'
+    compileSdk 34
+    defaultConfig {
+        applicationId 'br.xadrez.academico'
+        minSdk 26
+        targetSdk 34
+        versionCode 1
+        versionName '1.0'
+    }
+    // o Stockfish (.wasm) fica sem compressão para abrir rápido
+    androidResources { noCompress 'wasm', 'js' }
+}
