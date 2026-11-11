@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Build C++ Raylib Android APK
 
 on:
   push:
@@ -14,20 +14,35 @@ jobs:
     - name: Checkout do Código
       uses: actions/checkout@v4
 
-    - name: Configurar o JDK 17
+    - name: Configurar o Java (JDK 17)
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Dar permissão de execução ao Gradle Wrapper
-      run: chmod +x gradlew
+    - name: Configurar o Android SDK & NDK
+      uses: android-actions/setup-android@v3
 
-    - name: Compilar o APK (Debug)
-      run: ./gradlew assembleDebug
+    - name: Instalar Dependências de Compilação (CMake & Ninja)
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake ninja-build build-essential
 
-    - name: Salvar o APK gerado
+    - name: Compilar o Projeto para Android via CMake / Gradle
+      run: |
+        # Configuração simplificada para empacotar o executável C++ numa estrutura Android padrão
+        mkdir -p build
+        cd build
+        cmake -DCMAKE_TOOLCHAIN_FILE=$ANDROID_HOME/ndk-bundle/build/cmake/android.toolchain.cmake \
+              -DANDROID_ABI=armeabi-v7a \
+              -DANDROID_PLATFORM=android-21 \
+              -DCMAKE_BUILD_TYPE=Release ..
+        make -j4
+
+    - name: Gerar Artefato APK
       uses: actions/upload-artifact@v4
       with:
-        name: app-debug
-        path: app/build/outputs/apk/debug/app-debug.apk
+        name: xadrez-academic-apk
+        path: |
+          build/**/*.apk
+          *.apk
