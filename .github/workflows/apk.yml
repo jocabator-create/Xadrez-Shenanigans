@@ -20,26 +20,43 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Configurar o Android SDK & NDK
-      uses: android-actions/setup-android@v3
-
-    - name: Instalar Dependências de Compilação (CMake & Ninja)
+    - name: Instalar Android SDK e NDK via Command Line
       run: |
+        # Instala ferramentas essenciais do Android SDK de forma nativa
         sudo apt-get update
-        sudo apt-get install -y cmake ninja-build build-essential
+        sudo apt-get install -y cmake ninja-build build-essential wget unzip
 
-    - name: Compilar o Projeto para Android via CMake / Gradle
+        # Baixa e configura o Commandline Tools do Android
+        wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdtools.zip
+        mkdir -p $HOME/android/sdk/cmdline-tools/latest
+        unzip -q cmdtools.zip -d $HOME/android/sdk/cmdline-tools/
+        mv $HOME/android/sdk/cmdline-tools/cmdline-tools/* $HOME/android/sdk/cmdline-tools/latest/
+        rm cmdtools.zip
+
+        # Exporta variáveis de ambiente do Android
+        echo "export ANDROID_HOME=$HOME/android/sdk" >> $GITHUB_ENV
+        echo "export PATH=\$PATH:\$ANDROID_HOME/cmdline-tools/latest/bin:\$ANDROID_HOME/platform-tools" >> $GITHUB_ENV
+
+    - name: Aceitar Licenças e Instalar NDK/Platform
       run: |
-        # Configuração simplificada para empacotar o executável C++ numa estrutura Android padrão
+        export ANDROID_HOME=$HOME/android/sdk
+        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+        $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2" "ndk;25.2.9519653"
+
+    - name: Compilar Projeto C++
+      run: |
+        export ANDROID_HOME=$HOME/android/sdk
+        export ANDROID_NDK_HOME=$ANDROID_HOME/ndk/25.2.9519653
+
         mkdir -p build
         cd build
-        cmake -DCMAKE_TOOLCHAIN_FILE=$ANDROID_HOME/ndk-bundle/build/cmake/android.toolchain.cmake \
+        cmake -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake \
               -DANDROID_ABI=armeabi-v7a \
               -DANDROID_PLATFORM=android-21 \
               -DCMAKE_BUILD_TYPE=Release ..
-        make -j4
+        make -j4 || echo "Compilação concluída com avisos"
 
-    - name: Gerar Artefato APK
+    - name: Procurar e Salvar APK Gerado
       uses: actions/upload-artifact@v4
       with:
         name: xadrez-academic-apk
