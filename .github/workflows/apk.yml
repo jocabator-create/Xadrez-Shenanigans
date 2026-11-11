@@ -1,8 +1,47 @@
-- name: Compilar Projeto C++
+name: Build C++ Raylib Android APK
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout do Código
+      uses: actions/checkout@v4
+
+    - name: Configurar o Java (JDK 17)
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Instalar Android SDK e NDK via Command Line
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake ninja-build build-essential wget unzip
+        wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdtools.zip
+        mkdir -p $HOME/android/sdk/cmdline-tools/latest
+        unzip -q cmdtools.zip -d $HOME/android/sdk/cmdline-tools/
+        mv $HOME/android/sdk/cmdline-tools/cmdline-tools/* $HOME/android/sdk/cmdline-tools/latest/
+        rm cmdtools.zip
+        echo "export ANDROID_HOME=$HOME/android/sdk" >> $GITHUB_ENV
+        echo "export PATH=\$PATH:\$ANDROID_HOME/cmdline-tools/latest/bin:\$ANDROID_HOME/platform-tools" >> $GITHUB_ENV
+
+    - name: Aceitar Licenças e Instalar NDK/Platform
+      run: |
+        export ANDROID_HOME=$HOME/android/sdk
+        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+        $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2" "ndk;25.2.9519653"
+
+    - name: Compilar Projeto C++
       run: |
         export ANDROID_HOME=$HOME/android/sdk
         export ANDROID_NDK_HOME=$ANDROID_HOME/ndk/25.2.9519653
-
         mkdir -p build
         cd build
         cmake -G "Ninja" \
@@ -17,3 +56,10 @@
               -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
               -DCMAKE_BUILD_TYPE=Release ..
         ninja
+
+    - name: Procurar e Salvar Binários
+      uses: actions/upload-artifact@v4
+      with:
+        name: xadrez-academic-binarios
+        path: |
+          build/**/*
